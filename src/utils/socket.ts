@@ -8,6 +8,7 @@ export default function connectWs() {
   });
   io.on("connect", () => {
     console.log(`socket.connect with id:${io.id}`); // false
+    localStorage.setItem("id", io.id);
   });
   function connect() {
     io.connect();

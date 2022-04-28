@@ -6,26 +6,39 @@ import sendIcon from "../../assets/icon/send.png";
 const { connect, io } = connectWs();
 function Home() {
   const [value, setValue] = useState("");
+  const [msg, setMsg] = useState<any[]>([]);
   const send = () => {
     if (!value.trim()) return;
-    io.emit("chat", { data: value });
+    io.emit("chat", {
+      message: value,
+      id: localStorage.getItem("id"),
+      avatar: "cat",
+      name: "izumi",
+    });
+    setValue("");
   };
   useEffect(() => {
     connect();
+    io.on("cast", (arg) => {
+      setMsg(msg.concat([arg]));
+    });
   }, []);
   return (
     <div className={style.home}>
       <ul className={style.messageContent}>
-        <li className={`${style.box} ${style.other}`}>
-          <div className={style.avatar}>
-            <img src="" alt="" />
-          </div>
-          <div className={`${style.message}`}>
-            <p>
-              梵蒂冈地方官梵蒂冈dsfsdf士大夫士大夫梵蒂冈豆腐干豆腐干豆腐干豆腐干地方豆腐干反对
-            </p>
-          </div>
-        </li>
+        {msg.map((item: any, index: number) => {
+          return (
+            <li className={`${style.box} ${style.self}`} key={index}>
+              <div className={`${style.message}`}>
+                <p>{item.message}</p>
+              </div>
+              <div className={style.avatar}>
+                <img src="" alt="" />
+                <i> {item.name}</i>
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <div className={style.handelWrap}>
         <TextArea

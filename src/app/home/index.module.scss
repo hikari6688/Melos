@@ -7,15 +7,66 @@
   .messageContent {
     width: 100%;
     flex: 1;
+    padding: 10px 20px;
+    .other {
+      .message {
+        position: relative;
+        &::after {
+          content: "";
+          position: absolute;
+          left: -8px;
+          top: 10px;
+          display: block;
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-right: 8px solid #2c2c2c;
+          border-bottom: 8px solid transparent;
+        }
+      }
+      .avatar {
+        margin-right: 10px;
+      }
+    }
+    .self {
+      justify-content: flex-end;
+      .avatar {
+        margin-left: 10px;
+      }
+      .message {
+        position: relative;
+        &::after {
+          content: "";
+          position: absolute;
+          right: -8px;
+          top: 10px;
+          display: block;
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-left: 8px solid #2c2c2c;
+          border-bottom: 8px solid transparent;
+        }
+      }
+    }
     .box {
       display: flex;
+      width: 100%;
+      margin-bottom: 20px;
       .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: #fff;
-        margin-right: 4px;
-        margin-right: 8px;
+        img {
+          display: block;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: #fff;
+        }
+        i {
+          display: block;
+          text-align: center;
+          margin-top: 2px;
+          color: rgb(197, 197, 197);
+        }
       }
       .message {
         max-width: 70%;
@@ -24,11 +75,6 @@
         border-radius: 4px;
         color: #fff;
         line-height: 16px;
-      }
-      .self {
-      }
-      .other {
-          
       }
     }
   }
