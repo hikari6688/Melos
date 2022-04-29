@@ -1,6 +1,6 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { ws_host } from "../conf/config";
-import { io as socketio } from "socket.io-client";
+import { io as socketio, Socket } from "socket.io-client";
 export default function connectWs() {
   const io = socketio(ws_host, {
     reconnectionDelayMax: 10000,

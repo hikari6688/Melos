@@ -1,58 +1,108 @@
 import React, { useEffect, useState } from "react";
-import { TextArea, Button } from "antd-mobile";
-import connectWs from "../../utils/socket";
+import avatarMap from "../../utils/avatar";
+import {
+  TextArea,
+  Button,
+  Form,
+  Input,
+  Switch,
+  Popup,
+  Avatar,
+  Space,
+} from "antd-mobile";
 import style from "./index.module.scss";
-import sendIcon from "../../assets/icon/send.png";
-const { connect, io } = connectWs();
 function Home() {
-  const [value, setValue] = useState("");
-  const [msg, setMsg] = useState<any[]>([]);
-  const send = () => {
-    if (!value.trim()) return;
-    io.emit("chat", {
-      message: value,
-      id: localStorage.getItem("id"),
-      avatar: "cat",
-      name: "izumi",
-    });
-    setValue("");
+  const [form] = Form.useForm();
+  const onSubmit = () => {
+    const data = { ...form.getFieldsValue(), avatar };
+    console.log(data);
+    localStorage.setItem("userInfo", JSON.stringify(data));
+  };
+  const [visible, setVisible] = useState(false);
+  const [avatar, setAvatar] = useState("");
+  const clickAvatar = (item: any) => {
+    setAvatar(item);
+    setVisible(false);
   };
   useEffect(() => {
-    connect();
-    io.on("cast", (arg) => {
-      setMsg(msg.concat([arg]));
-    });
+    try {
+      const userInfo = localStorage.getItem("userInfo");
+      if (userInfo) {
+        const { avatar, name, roomId } = JSON.parse(userInfo);
+        setAvatar(avatar);
+        form.setFieldsValue({ name, roomId });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
   return (
     <div className={style.home}>
-      <ul className={style.messageContent}>
-        {msg.map((item: any, index: number) => {
-          return (
-            <li className={`${style.box} ${style.self}`} key={index}>
-              <div className={`${style.message}`}>
-                <p>{item.message}</p>
-              </div>
-              <div className={style.avatar}>
-                <img src="" alt="" />
-                <i> {item.name}</i>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      <div className={style.handelWrap}>
-        <TextArea
-          rows={1}
-          autoSize={{ minRows: 1, maxRows: 3 }}
-          value={value}
-          onChange={(val) => {
-            setValue(val);
-          }}
-        />
-        <Button size="small" color="primary" onClick={send}>
-          <img className={style.sendIcon} src={sendIcon} alt="" />
+      <Form requiredMarkStyle="text-required" form={form}>
+        <Form.Item
+          name="name"
+          label="头像"
+          layout="horizontal"
+          className={style.avatarWrap}
+        >
+          <div
+            className="avatarWrap"
+            onClick={() => {
+              setVisible(true);
+            }}
+          >
+            <Avatar
+              src={avatarMap[avatar]}
+              style={{ "--size": "64px", "--border-radius": "32px" }}
+            />
+          </div>
+        </Form.Item>
+        <Form.Item name="name" label="昵称" rules={[{ required: true }]}>
+          <Input placeholder="请输入宁的昵称" />
+        </Form.Item>
+        {!form.getFieldValue('isnew') && (
+          <Form.Item name="roomId" label="房间号" help="输入聊天室房间号">
+            <Input placeholder="请输入房间号" />
+          </Form.Item>
+        )}
+        <Form.Item
+          name="isnew"
+          label="创建房间"
+          childElementPosition="right"
+          layout="horizontal"
+        >
+          <Switch />
+        </Form.Item>
+        <Button block color="primary" onClick={onSubmit} size="large">
+          进入群聊
         </Button>
-      </div>
+      </Form>
+      <Popup
+        visible={visible}
+        bodyStyle={{
+          padding: "20px 10px",
+        }}
+        onMaskClick={() => {
+          setVisible(false);
+        }}
+      >
+        <Space block wrap>
+          {Object.keys(avatarMap).map((item) => {
+            return (
+              <div
+                onClick={() => {
+                  clickAvatar(item);
+                }}
+              >
+                <Avatar
+                  src={avatarMap[item]}
+                  style={{ "--size": "64px", "--border-radius": "32px" }}
+                />
+              </div>
+            );
+          })}
+        </Space>
+      </Popup>
     </div>
   );
 }

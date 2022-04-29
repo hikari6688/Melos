@@ -1,0 +1,112 @@
+.room {
+  height: 100vh;
+  width: 100vw;
+  background: #111111;
+  display: flex;
+  flex-direction: column;
+  .messageContent {
+    width: 100%;
+    flex: 1;
+    padding: 10px 20px;
+    .other {
+      .message {
+        position: relative;
+        &::after {
+          content: "";
+          position: absolute;
+          left: -8px;
+          top: 10px;
+          display: block;
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-right: 8px solid #2c2c2c;
+          border-bottom: 8px solid transparent;
+        }
+      }
+      .avatar {
+        margin-right: 10px;
+      }
+    }
+    .self {
+      justify-content: flex-end;
+      .avatar {
+        margin-left: 10px;
+      }
+      .message {
+        position: relative;
+        &::after {
+          content: "";
+          position: absolute;
+          right: -8px;
+          top: 10px;
+          display: block;
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-left: 8px solid #2c2c2c;
+          border-bottom: 8px solid transparent;
+        }
+      }
+    }
+    .box {
+      display: flex;
+      width: 100%;
+      margin-bottom: 20px;
+      .avatar {
+        img {
+          display: block;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #fff;
+          padding: 2px;
+        }
+        i {
+          display: block;
+          text-align: center;
+          margin-top: 2px;
+          color: rgb(197, 197, 197);
+        }
+      }
+      .message {
+        max-width: 70%;
+        background: #2c2c2c;
+        padding: 4px 6px;
+        border-radius: 4px;
+        color: #fff;
+        line-height: 16px;
+      }
+    }
+  }
+  .handelWrap {
+    min-height: 50px;
+    background: #1c1c1c;
+    display: flex;
+    color: #fff;
+    padding: 8px;
+    align-items: center;
+    .sendIcon {
+      width: 30px;
+      height: 30px;
+    }
+    :global {
+      .adm-text-area {
+        --color: #fff !important;
+      }
+      .adm-text-area-element {
+        background: #282828 !important;
+        padding: 2px 6px;
+      }
+      .adm-button {
+        padding: 0 6px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .adm-text-area {
+        margin-right: 8px;
+      }
+    }
+  }
+}
