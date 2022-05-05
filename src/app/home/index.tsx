@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import avatarMap from "../../utils/avatar";
 import { Button, Form, Input, Switch, Popup, Avatar, Space } from "antd-mobile";
 import { SocketContext } from "../../context/socketContext";
 import style from "./index.module.scss";
 import connectWs from "../../utils/socket";
 import { useNavigate } from "react-router-dom";
+const uuid = require("uuid");
 function Home() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -12,22 +13,21 @@ function Home() {
   const onSubmit = () => {
     //表单校验
     form.validateFields().then(async (r) => {
+      const data = { ...form.getFieldsValue(), avatar };
+      sessionStorage.setItem("userInfo", JSON.stringify(data));
       if (!io.current) {
         //进入别人房间 未连接socket
         const { connect } = connectWs();
         const _io: any = await connect();
         setIo(_io);
+        //加入房间
+        io.current.emit("join-room", data);
+        navigate("/room");
       } else {
+        //加入房间
+        io.current.emit("join-room", data);
+        navigate("/room");
       }
-      const data = { ...form.getFieldsValue(), avatar };
-      const { roomId, ...rest } = data;
-      sessionStorage.setItem("userInfo", JSON.stringify(rest));
-      //加入房间
-      io.current.emit("join-room", data);
-      io.current.on("user-join", (userInfo: object) => {
-        console.log(userInfo);
-      });
-      navigate("/room");
     });
   };
   const [visible, setVisible] = useState(false);
@@ -45,25 +45,26 @@ function Home() {
     document.execCommand("Copy");
     document.body.removeChild(textarea);
   }
-  const genId = async () => {
+  const genId = useCallback(async () => {
+    const roomId = uuid.v4();
     if (!io.current) {
       const { connect } = connectWs();
       const _io: any = await connect();
       setIo(_io);
-      form.setFieldsValue({ roomId: _io.id });
-      copy(io.current.id);
+      form.setFieldsValue({ roomId });
+      copy(roomId);
     } else {
       form.setFieldsValue("");
-      copy(io.current.id);
+      copy(roomId);
     }
-  };
+  }, []);
   useEffect(() => {
     try {
       const userInfo = sessionStorage.getItem("userInfo");
       if (userInfo) {
         const { avatar, name, roomId } = JSON.parse(userInfo);
         setAvatar(avatar);
-        form.setFieldsValue({ name, roomId });
+        form.setFieldsValue({ name });
       }
     } catch (error) {
       console.log(error);
@@ -118,7 +119,7 @@ function Home() {
           help="不填写房间号默认进入公共聊天区"
           extra={
             isCreated ? (
-              <Button size="small" color="primary" onClick={genId}>
+              <Button size="small" color="primary" onClick={()=>{ copy(form.getFieldValue('roomId')) }}>
                 复制
               </Button>
             ) : null

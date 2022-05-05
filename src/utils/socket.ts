@@ -12,7 +12,6 @@ export default function connectWs() {
       io.on("connect", () => {
         //client 连接成功
         console.log(`socket.connect with id:${io.id}`);
-        sessionStorage.setItem("id", io.id);
         resolve(io);
       });
       io.on("connect_error", (reason) => {

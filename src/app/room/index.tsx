@@ -10,20 +10,17 @@ function Room() {
   const [msg, setMsg] = useState<any[]>([]);
   const [cast, setCast] = useState<any>({});
   const send = () => {
+    const userInfo = JSON.parse(sessionStorage.getItem("userInfo") as string);
     if (!value.trim()) return;
     io.current.emit("chat", {
       message: value,
-      id: sessionStorage.getItem("id"),
-      avatar: "zeni",
-      name: "izumi",
+      ...userInfo,
     });
     setMsg([
       ...msg,
       {
         message: value,
-        id: sessionStorage.getItem("id"),
-        avatar: "zeni",
-        name: "izumi",
+        ...userInfo,
         self: true,
       },
     ]);
@@ -32,14 +29,20 @@ function Room() {
   useEffect(() => {
     io.current.on("user-join", (arg: any) => {
       console.log(arg);
+      setMsg([...msg, arg]);
+    });
+    io.current.on("cast", (arg: any) => {
+      setCast(arg);
     });
   }, []);
   useEffect(() => {
+    //收到消息
     if (Object.keys(cast).length) {
       setMsg([...msg, cast]);
     }
   }, [cast]);
   useEffect(() => {
+    //收到消息滚动至底部
     const el = document.querySelector(".toEnd") as Element;
     const h: number = el.clientHeight;
     el.scrollTop = h;
@@ -76,6 +79,13 @@ function Room() {
     <div className={style.room}>
       <ul className={`${style.messageContent} toEnd`}>
         {msg.map((item: any, index: number) => {
+          if (item.type === "enterTip") {
+            return (
+              <li className={style.tip} key={index}>
+                {item.name}进入房间&nbsp;{item.time}
+              </li>
+            );
+          }
           if (item.self) {
             return <Self item={item} key={index} />;
           }

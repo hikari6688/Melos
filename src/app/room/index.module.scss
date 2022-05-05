@@ -9,6 +9,11 @@
     width: 100%;
     flex: 1;
     padding: 10px 20px;
+    .tip {
+      color: #c2c2c2;
+      text-align: center;
+      padding: 8px 0;
+    }
     .other {
       .message {
         &::after {
@@ -66,11 +71,12 @@
         i {
           display: block;
           text-align: center;
-          margin-top: 2px;
+          margin-top: 4px;
           color: rgb(197, 197, 197);
           position: absolute;
           left: 50%;
           transform: translate(-50%, 0%);
+          word-break: keep-all;
         }
       }
       .message {
