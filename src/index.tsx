@@ -5,18 +5,19 @@ import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./app/home";
 import Room from "./app/room";
+import { SocketProvider } from "./context/socketContext";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
-  <React.StrictMode>
+  <SocketProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/room" element={<Room />} />
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>
+  </SocketProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

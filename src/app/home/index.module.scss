@@ -4,14 +4,6 @@
   display: flex;
   flex-direction: column;
   padding: 30px;
-  .pop{
-    background: red;
-  }
-  :global{
-    .adm-popup-body{
-      background: red; 
-    }
-  }
   .avatarWrap {
     :global {
       .adm-form-item-child {

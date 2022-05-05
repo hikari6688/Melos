@@ -5,17 +5,17 @@
   display: flex;
   flex-direction: column;
   .messageContent {
+    overflow-y: auto;
     width: 100%;
     flex: 1;
     padding: 10px 20px;
     .other {
       .message {
-        position: relative;
         &::after {
           content: "";
           position: absolute;
-          left: -8px;
-          top: 10px;
+          left: -5px;
+          top: 12px;
           display: block;
           width: 0;
           height: 0;
@@ -34,12 +34,11 @@
         margin-left: 10px;
       }
       .message {
-        position: relative;
         &::after {
           content: "";
           position: absolute;
-          right: -8px;
-          top: 10px;
+          right: -5px;
+          top: 12px;
           display: block;
           width: 0;
           height: 0;
@@ -53,7 +52,9 @@
       display: flex;
       width: 100%;
       margin-bottom: 20px;
+      align-items: flex-start;
       .avatar {
+        position: relative;
         img {
           display: block;
           width: 40px;
@@ -67,15 +68,23 @@
           text-align: center;
           margin-top: 2px;
           color: rgb(197, 197, 197);
+          position: absolute;
+          left: 50%;
+          transform: translate(-50%, 0%);
         }
       }
       .message {
+        min-height: 40px;
+        position: relative;
+        word-break: break-all;
         max-width: 70%;
         background: #2c2c2c;
         padding: 4px 6px;
         border-radius: 4px;
         color: #fff;
         line-height: 16px;
+        display: flex;
+        align-items: center;
       }
     }
   }

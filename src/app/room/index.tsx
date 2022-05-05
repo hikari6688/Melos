@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { TextArea, Button } from "antd-mobile";
-import connectWs from "../../utils/socket";
 import style from "./index.module.scss";
 import sendIcon from "../../assets/icon/send.png";
 import avatarMap from "../../utils/avatar";
-const { connect, io } = connectWs();
+import { SocketContext } from "../../context/socketContext";
 function Room() {
+  const { io } = useContext(SocketContext);
   const [value, setValue] = useState("");
   const [msg, setMsg] = useState<any[]>([]);
   const [cast, setCast] = useState<any>({});
   const send = () => {
     if (!value.trim()) return;
-    io.emit("chat", {
+    io.current.emit("chat", {
       message: value,
-      id: localStorage.getItem("id"),
+      id: sessionStorage.getItem("id"),
       avatar: "zeni",
       name: "izumi",
     });
@@ -21,7 +21,7 @@ function Room() {
       ...msg,
       {
         message: value,
-        id: localStorage.getItem("id"),
+        id: sessionStorage.getItem("id"),
         avatar: "zeni",
         name: "izumi",
         self: true,
@@ -30,9 +30,8 @@ function Room() {
     setValue("");
   };
   useEffect(() => {
-    connect();
-    io.on("cast", (arg) => {
-      setCast(arg);
+    io.current.on("user-join", (arg: any) => {
+      console.log(arg);
     });
   }, []);
   useEffect(() => {
@@ -40,6 +39,11 @@ function Room() {
       setMsg([...msg, cast]);
     }
   }, [cast]);
+  useEffect(() => {
+    const el = document.querySelector(".toEnd") as Element;
+    const h: number = el.clientHeight;
+    el.scrollTop = h;
+  }, [msg]);
   const Self = (prop: any) => {
     const { item } = prop;
     return (
@@ -70,7 +74,7 @@ function Room() {
   };
   return (
     <div className={style.room}>
-      <ul className={style.messageContent}>
+      <ul className={`${style.messageContent} toEnd`}>
         {msg.map((item: any, index: number) => {
           if (item.self) {
             return <Self item={item} key={index} />;

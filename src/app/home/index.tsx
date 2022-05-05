@@ -1,32 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import avatarMap from "../../utils/avatar";
-import {
-  TextArea,
-  Button,
-  Form,
-  Input,
-  Switch,
-  Popup,
-  Avatar,
-  Space,
-} from "antd-mobile";
+import { Button, Form, Input, Switch, Popup, Avatar, Space } from "antd-mobile";
+import { SocketContext } from "../../context/socketContext";
 import style from "./index.module.scss";
+import connectWs from "../../utils/socket";
+import { useNavigate } from "react-router-dom";
 function Home() {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
+  const { io, setIo } = useContext(SocketContext);
   const onSubmit = () => {
-    const data = { ...form.getFieldsValue(), avatar };
-    console.log(data);
-    localStorage.setItem("userInfo", JSON.stringify(data));
+    //表单校验
+    form.validateFields().then(async (r) => {
+      if (!io.current) {
+        //进入别人房间 未连接socket
+        const { connect } = connectWs();
+        const _io: any = await connect();
+        setIo(_io);
+      } else {
+      }
+      const data = { ...form.getFieldsValue(), avatar };
+      const { roomId, ...rest } = data;
+      sessionStorage.setItem("userInfo", JSON.stringify(rest));
+      //加入房间
+      io.current.emit("join-room", data);
+      io.current.on("user-join", (userInfo: object) => {
+        console.log(userInfo);
+      });
+      navigate("/room");
+    });
   };
   const [visible, setVisible] = useState(false);
   const [avatar, setAvatar] = useState("");
+  const [isCreated, setCreated] = useState(false);
   const clickAvatar = (item: any) => {
     setAvatar(item);
     setVisible(false);
   };
+  function copy(text: string) {
+    var textarea = document.createElement("textarea");
+    document.body.appendChild(textarea);
+    textarea.value = text;
+    textarea.select();
+    document.execCommand("Copy");
+    document.body.removeChild(textarea);
+  }
+  const genId = async () => {
+    if (!io.current) {
+      const { connect } = connectWs();
+      const _io: any = await connect();
+      setIo(_io);
+      form.setFieldsValue({ roomId: _io.id });
+      copy(io.current.id);
+    } else {
+      form.setFieldsValue("");
+      copy(io.current.id);
+    }
+  };
   useEffect(() => {
     try {
-      const userInfo = localStorage.getItem("userInfo");
+      const userInfo = sessionStorage.getItem("userInfo");
       if (userInfo) {
         const { avatar, name, roomId } = JSON.parse(userInfo);
         setAvatar(avatar);
@@ -60,18 +93,38 @@ function Home() {
         <Form.Item name="name" label="昵称" rules={[{ required: true }]}>
           <Input placeholder="请输入宁的昵称" />
         </Form.Item>
-        {!form.getFieldValue('isnew') && (
-          <Form.Item name="roomId" label="房间号" help="输入聊天室房间号">
-            <Input placeholder="请输入房间号" />
-          </Form.Item>
-        )}
         <Form.Item
-          name="isnew"
+          name="isCreated"
           label="创建房间"
           childElementPosition="right"
           layout="horizontal"
         >
-          <Switch />
+          <Switch
+            onChange={(val: boolean) => {
+              setCreated(val);
+              if (val) {
+                //创建房间
+                genId();
+              } else {
+                // 加入别人的房间
+                form.setFieldsValue({ roomId: "" });
+              }
+            }}
+          />
+        </Form.Item>
+        <Form.Item
+          name="roomId"
+          label="房间号"
+          help="不填写房间号默认进入公共聊天区"
+          extra={
+            isCreated ? (
+              <Button size="small" color="primary" onClick={genId}>
+                复制
+              </Button>
+            ) : null
+          }
+        >
+          <Input readOnly={isCreated} placeholder="请输入房间号" />
         </Form.Item>
         <Button block color="primary" onClick={onSubmit} size="large">
           进入群聊
@@ -90,6 +143,7 @@ function Home() {
           {Object.keys(avatarMap).map((item) => {
             return (
               <div
+                key={item}
                 onClick={() => {
                   clickAvatar(item);
                 }}
