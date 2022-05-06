@@ -31,9 +31,7 @@ function Room() {
   };
   const press = useCallback(
     (args: any) => {
-      console.log(value);
       const { keyCode, ctrlKey } = args;
-      console.log({ keyCode, ctrlKey, value, isFocus });
       if (ctrlKey && keyCode === 13 && value.trim() && isFocus) {
         //发送消息
         send();
