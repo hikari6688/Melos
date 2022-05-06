@@ -3,9 +3,10 @@ import { TextArea, Button } from "antd-mobile";
 import style from "./index.module.scss";
 import sendIcon from "../../assets/icon/send.png";
 import avatarMap from "../../utils/avatar";
+import connectWs from "../../utils/socket";
 import { SocketContext } from "../../context/socketContext";
 function Room() {
-  const { io } = useContext(SocketContext);
+  const { io, setIo } = useContext(SocketContext);
   const [value, setValue] = useState("");
   const [msg, setMsg] = useState<any[]>([]);
   const [cast, setCast] = useState<any>({});
@@ -27,13 +28,32 @@ function Room() {
     setValue("");
   };
   useEffect(() => {
-    io.current.on("user-join", (arg: any) => {
-      console.log(arg);
-      setMsg([...msg, arg]);
-    });
-    io.current.on("cast", (arg: any) => {
-      setCast(arg);
-    });
+    const userInfo = sessionStorage.getItem("userInfo");
+    if (!io.current && userInfo) {
+      const { connect } = connectWs();
+      connect().then((_io: any) => {
+        _io.emit(
+          "join-room",
+          JSON.parse(sessionStorage.getItem("userInfo") as string)
+        );
+        _io.on("user-join", (arg: any) => {
+          console.log(arg);
+          setMsg([...msg, arg]);
+        });
+        _io.on("cast", (arg: any) => {
+          setCast(arg);
+        });
+        setIo(_io);
+      });
+    } else {
+      io.current.on("user-join", (arg: any) => {
+        console.log(arg);
+        setMsg([...msg, arg]);
+      });
+      io.current.on("cast", (arg: any) => {
+        setCast(arg);
+      });
+    }
   }, []);
   useEffect(() => {
     //收到消息

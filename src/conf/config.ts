@@ -1,1 +1,1 @@
-export const ws_host = 'ws://192.168.31.227:9001'
+export const ws_host = 'ws://127.0.0.1:9001'

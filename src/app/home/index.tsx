@@ -45,17 +45,30 @@ function Home() {
     document.execCommand("Copy");
     document.body.removeChild(textarea);
   }
-  const genId = useCallback(async () => {
+  const genId = useCallback(async (val: boolean /*是否主动创建房间*/) => {
     const roomId = uuid.v4();
     if (!io.current) {
+      //当前无连接 主动连接
       const { connect } = connectWs();
       const _io: any = await connect();
       setIo(_io);
       form.setFieldsValue({ roomId });
-      copy(roomId);
     } else {
-      form.setFieldsValue("");
-      copy(roomId);
+      //已经连接
+      if (val) {
+        try {
+          const userInfo = sessionStorage.getItem("userInfo");
+          if (userInfo) {
+            const { roomId } = JSON.parse(userInfo);
+            form.setFieldsValue({ roomId });
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        //输入别人房间号
+        form.setFieldsValue({ roomId: "" });
+      }
     }
   }, []);
   useEffect(() => {
@@ -64,7 +77,7 @@ function Home() {
       if (userInfo) {
         const { avatar, name, roomId } = JSON.parse(userInfo);
         setAvatar(avatar);
-        form.setFieldsValue({ name });
+        form.setFieldsValue({ name, roomId });
       }
     } catch (error) {
       console.log(error);
@@ -103,13 +116,7 @@ function Home() {
           <Switch
             onChange={(val: boolean) => {
               setCreated(val);
-              if (val) {
-                //创建房间
-                genId();
-              } else {
-                // 加入别人的房间
-                form.setFieldsValue({ roomId: "" });
-              }
+              genId(val);
             }}
           />
         </Form.Item>
@@ -119,7 +126,13 @@ function Home() {
           help="不填写房间号默认进入公共聊天区"
           extra={
             isCreated ? (
-              <Button size="small" color="primary" onClick={()=>{ copy(form.getFieldValue('roomId')) }}>
+              <Button
+                size="small"
+                color="primary"
+                onClick={() => {
+                  copy(form.getFieldValue("roomId"));
+                }}
+              >
                 复制
               </Button>
             ) : null
@@ -140,23 +153,24 @@ function Home() {
           setVisible(false);
         }}
       >
-        <Space block wrap>
-          {Object.keys(avatarMap).map((item) => {
-            return (
-              <div
-                key={item}
-                onClick={() => {
-                  clickAvatar(item);
-                }}
-              >
-                <Avatar
-                  src={avatarMap[item]}
-                  style={{ "--size": "64px", "--border-radius": "32px" }}
-                />
-              </div>
-            );
-          })}
-        </Space>
+          <div style={{ height: "50vh", overflowY: "scroll", padding: "20px",display:'flex',flexWrap:'wrap',justifyContent:'space-between' }}>
+            {Object.keys(avatarMap).map((item) => {
+              return (
+                <div
+                style={ { padding:'4px' } }
+                  key={item}
+                  onClick={() => {
+                    clickAvatar(item);
+                  }}
+                >
+                  <Avatar
+                    src={avatarMap[item]}
+                    style={{ "--size": "64px", "--border-radius": "32px" }}
+                  />
+                </div>
+              );
+            })}
+          </div>
       </Popup>
     </div>
   );
