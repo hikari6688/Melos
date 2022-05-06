@@ -56,7 +56,7 @@
     .box {
       display: flex;
       width: 100%;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       align-items: flex-start;
       .avatar {
         position: relative;
@@ -69,6 +69,7 @@
           padding: 2px;
         }
         i {
+          font-size: 12px;
           display: block;
           text-align: center;
           margin-top: 4px;
