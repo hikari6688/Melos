@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 // import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, HashRouter } from "react-router-dom";
 import Home from "./app/home";
 import Room from "./app/room";
 import { SocketProvider } from "./context/socketContext";
@@ -11,12 +11,12 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <SocketProvider>
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/room" element={<Room />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   </SocketProvider>
 );
 

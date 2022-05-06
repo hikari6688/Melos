@@ -1,15 +1,17 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import { TextArea, Button } from "antd-mobile";
 import style from "./index.module.scss";
 import sendIcon from "../../assets/icon/send.png";
 import avatarMap from "../../utils/avatar";
 import connectWs from "../../utils/socket";
 import { SocketContext } from "../../context/socketContext";
+import { text } from "stream/consumers";
 function Room() {
   const { io, setIo } = useContext(SocketContext);
   const [value, setValue] = useState("");
   const [msg, setMsg] = useState<any[]>([]);
   const [cast, setCast] = useState<any>({});
+  const [isFocus, setFocus] = useState<boolean>(false);
   const send = () => {
     const userInfo = JSON.parse(sessionStorage.getItem("userInfo") as string);
     if (!value.trim()) return;
@@ -27,18 +29,29 @@ function Room() {
     ]);
     setValue("");
   };
+  const press = useCallback(
+    (args: any) => {
+      console.log(value);
+      const { keyCode, ctrlKey } = args;
+      console.log({ keyCode, ctrlKey, value, isFocus });
+      if (ctrlKey && keyCode === 13 && value.trim() && isFocus) {
+        //发送消息
+        send();
+      }
+    },
+    [isFocus, value]
+  );
   useEffect(() => {
     const userInfo = sessionStorage.getItem("userInfo");
     if (!io.current && userInfo) {
       const { connect } = connectWs();
       connect().then((_io: any) => {
-        _io.emit(
-          "join-room",
-          JSON.parse(sessionStorage.getItem("userInfo") as string)
-        );
+        _io.emit("join-room", JSON.parse(userInfo));
         _io.on("user-join", (arg: any) => {
-          console.log(arg);
-          setMsg([...msg, arg]);
+          setCast(arg);
+        });
+        _io.on("user-leave", (arg: any) => {
+          setCast(arg);
         });
         _io.on("cast", (arg: any) => {
           setCast(arg);
@@ -47,13 +60,20 @@ function Room() {
       });
     } else {
       io.current.on("user-join", (arg: any) => {
-        console.log(arg);
-        setMsg([...msg, arg]);
+        setCast(arg);
+      });
+      io.current.on("user-leave", (arg: any) => {
+        setCast(arg);
       });
       io.current.on("cast", (arg: any) => {
         setCast(arg);
       });
     }
+    return () => {
+      if (io.current && userInfo) {
+        io.current.emit("leave-room", JSON.parse(userInfo));
+      }
+    };
   }, []);
   useEffect(() => {
     //收到消息
@@ -67,6 +87,12 @@ function Room() {
     const h: number = el.clientHeight;
     el.scrollTop = h;
   }, [msg]);
+  useEffect(() => {
+    document.addEventListener("keydown", press);
+    return () => {
+      document.removeEventListener("keydown", press);
+    };
+  }, [value]);
   const Self = (prop: any) => {
     const { item } = prop;
     return (
@@ -96,13 +122,30 @@ function Room() {
     );
   };
   return (
-    <div className={style.room}>
+    <div
+      className={style.room}
+      style={{
+        height:
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          )
+            ? `calc(100vh)`
+            : "100vh",
+      }}
+    >
       <ul className={`${style.messageContent} toEnd`}>
         {msg.map((item: any, index: number) => {
           if (item.type === "enterTip") {
             return (
               <li className={style.tip} key={index}>
                 {item.name}进入房间&nbsp;{item.time}
+              </li>
+            );
+          }
+          if (item.type === "leaveTip") {
+            return (
+              <li className={style.tip} key={index}>
+                {item.name}离开房间&nbsp;{item.time}
               </li>
             );
           }
@@ -117,6 +160,12 @@ function Room() {
           rows={1}
           autoSize={{ minRows: 1, maxRows: 3 }}
           value={value}
+          onBlur={() => {
+            setFocus(false);
+          }}
+          onFocus={() => {
+            setFocus(true);
+          }}
           onChange={(val) => {
             setValue(val);
           }}
