@@ -10,7 +10,6 @@ function Room() {
   const { io, setIo } = useContext(SocketContext);
   const [value, setValue] = useState("");
   const [msg, setMsg] = useState<any[]>([]);
-  const [cast, setCast] = useState<any>({});
   const [isFocus, setFocus] = useState<boolean>(false);
   const send = () => {
     const userInfo = JSON.parse(sessionStorage.getItem("userInfo") as string);
@@ -46,25 +45,25 @@ function Room() {
       connect().then((_io: any) => {
         _io.emit("join-room", JSON.parse(userInfo));
         _io.on("user-join", (arg: any) => {
-          setCast(arg);
+          setMsg((currentMsg) => [...currentMsg, arg]);
         });
         _io.on("user-leave", (arg: any) => {
-          setCast(arg);
+          setMsg((currentMsg) => [...currentMsg, arg]);
         });
         _io.on("cast", (arg: any) => {
-          setCast(arg);
+          setMsg((currentMsg) => [...currentMsg, arg]);
         });
         setIo(_io);
       });
     } else {
       io.current.on("user-join", (arg: any) => {
-        setCast(arg);
+        setMsg((currentMsg) => [...currentMsg, arg]);
       });
       io.current.on("user-leave", (arg: any) => {
-        setCast(arg);
+        setMsg((currentMsg) => [...currentMsg, arg]);
       });
       io.current.on("cast", (arg: any) => {
-        setCast(arg);
+        setMsg((currentMsg) => [...currentMsg, arg]);
       });
     }
     return () => {
@@ -73,12 +72,6 @@ function Room() {
       }
     };
   }, []);
-  useEffect(() => {
-    //收到消息
-    if (Object.keys(cast).length) {
-      setMsg([...msg, cast]);
-    }
-  }, [cast]);
   useEffect(() => {
     //收到消息滚动至底部
     const el = document.querySelector(".toEnd") as Element;
@@ -90,7 +83,7 @@ function Room() {
     return () => {
       document.removeEventListener("keydown", press);
     };
-  }, [value]);
+  }, []);
   const Self = (prop: any) => {
     const { item } = prop;
     return (
